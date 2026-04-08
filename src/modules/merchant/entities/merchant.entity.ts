@@ -178,7 +178,7 @@ export class Merchant extends BaseEntity {
   protected executeDslLifecycle(): void {
     // Rule: merchant-must-reference-user
     // Todo merchant debe mantener referencia a un user canónico.
-    if (!(!(this.userId === undefined || this.userId === null || (typeof this.userId === 'string' && String(this.userId).trim() === '') || (Array.isArray(this.userId) && this.userId.length === 0) || (typeof this.userId === 'object' && !Array.isArray(this.userId) && Object.keys((this.userId ?? {}) as Record<string, unknown>).length === 0)))) {
+    if (!(!(this.userId === undefined || this.userId === null || (typeof this.userId === 'string' && String(this.userId).trim() === '') || (Array.isArray(this.userId) && this.userId.length === 0) || (typeof this.userId === 'object' && !Array.isArray(this.userId) && Object.prototype.toString.call(this.userId) === '[object Object]' && Object.keys(Object(this.userId)).length === 0)))) {
       throw new Error('MERCHANT_001: Todo merchant debe referenciar un user canónico');
     }
   }
