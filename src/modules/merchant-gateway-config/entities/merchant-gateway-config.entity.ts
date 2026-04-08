@@ -215,12 +215,6 @@ export class MerchantGatewayConfig extends BaseEntity {
     if (!(this.status === 'ACTIVE' && this.isActive === true)) {
       throw new Error('MERCHANT_GATEWAY_001: No se puede marcar una configuración como activa sin isActive=true');
     }
-
-    // Rule: suspended-config-cannot-be-exposed
-    // Una pasarela suspendida no debe exponerse al cliente.
-    if (!(this.status !== 'SUSPENDED')) {
-      console.warn('MERCHANT_GATEWAY_002: Una configuración suspendida no debe exponerse al checkout');
-    }
   }
 
   // Relación con BaseEntity (opcional, si aplica)
