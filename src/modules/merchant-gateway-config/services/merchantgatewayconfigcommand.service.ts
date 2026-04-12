@@ -153,14 +153,6 @@ export class MerchantGatewayConfigCommandService implements OnModuleInit {
 
       // Regla de servicio: merchant-gateway-config-updated-emits-domain-event
       // Cuando una configuración operativa cambia debe emitirse un evento para recalcular disponibilidad, límites y comportamiento del checkout.
-      if (!(this.dslValue(entityData, currentData, inputData, 'status') === undefined || this.dslValue(entityData, currentData, inputData, 'status') === null || (typeof this.dslValue(entityData, currentData, inputData, 'status') === 'string' && String(this.dslValue(entityData, currentData, inputData, 'status')).trim() === '') || (Array.isArray(this.dslValue(entityData, currentData, inputData, 'status')) && this.dslValue(entityData, currentData, inputData, 'status').length === 0) || (typeof this.dslValue(entityData, currentData, inputData, 'status') === 'object' && !Array.isArray(this.dslValue(entityData, currentData, inputData, 'status')) && Object.prototype.toString.call(this.dslValue(entityData, currentData, inputData, 'status')) === '[object Object]' && Object.keys(Object(this.dslValue(entityData, currentData, inputData, 'status'))).length === 0))) {
-        pendingEvents.push(MerchantGatewayConfigUpdatedEvent.create(
-          String(entityData['id'] ?? currentData['id'] ?? inputData?.id ?? 'merchant-gateway-config-update'),
-          (entity ?? current ?? inputData ?? {}) as any,
-          String(entityData['createdBy'] ?? currentData['createdBy'] ?? inputData?.createdBy ?? 'system'),
-          String(entityData['id'] ?? currentData['id'] ?? inputData?.id ?? 'merchant-gateway-config-update')
-        ));
-      }
 
     }
     if (publishEvents) {
