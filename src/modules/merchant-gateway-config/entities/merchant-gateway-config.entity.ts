@@ -34,6 +34,7 @@ import { CreateMerchantGatewayConfigDto, UpdateMerchantGatewayConfigDto, DeleteM
 import { IsBoolean, IsDate, IsInt, IsNotEmpty, IsNumber, IsObject, IsOptional, IsString, IsUUID } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Field, Float, Int, ObjectType } from "@nestjs/graphql";
+import GraphQLJSON from 'graphql-type-json';
 import { plainToInstance } from 'class-transformer';
 import { Merchant } from '../../merchant/entities/merchant.entity';
 
@@ -127,7 +128,7 @@ export class MerchantGatewayConfig extends BaseEntity {
   })
   @IsObject()
   @IsOptional()
-  @Field(() => String, { description: 'Monedas aceptadas por el comercio en esta pasarela', nullable: true })
+  @Field(() => GraphQLJSON, { description: 'Monedas aceptadas por el comercio en esta pasarela', nullable: true })
   @Column({ type: 'json', nullable: true, comment: 'Monedas aceptadas por el comercio en esta pasarela' })
   acceptedCurrencies?: Record<string, any> = {};
 
@@ -138,7 +139,7 @@ export class MerchantGatewayConfig extends BaseEntity {
   })
   @IsObject()
   @IsOptional()
-  @Field(() => String, { description: 'Métodos de pago aceptados para esta pasarela', nullable: true })
+  @Field(() => GraphQLJSON, { description: 'Métodos de pago aceptados para esta pasarela', nullable: true })
   @Column({ type: 'json', nullable: true, comment: 'Métodos de pago aceptados para esta pasarela' })
   acceptedPaymentMethodTypes?: Record<string, any> = {};
 
@@ -193,7 +194,7 @@ export class MerchantGatewayConfig extends BaseEntity {
   })
   @IsObject()
   @IsOptional()
-  @Field(() => String, { description: 'Metadatos de configuración', nullable: true })
+  @Field(() => GraphQLJSON, { description: 'Metadatos de configuración', nullable: true })
   @Column({ type: 'json', nullable: true, comment: 'Metadatos de configuración' })
   metadata?: Record<string, any> = {};
 

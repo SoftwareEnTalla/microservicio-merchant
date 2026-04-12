@@ -53,7 +53,9 @@ import { IEventHandler, EventsHandler } from '@nestjs/cqrs';
 import { MerchantGatewayConfigCreatedEvent } from '../events/merchantgatewayconfigcreated.event';
 import { MerchantGatewayConfigUpdatedEvent } from '../events/merchantgatewayconfigupdated.event';
 import { MerchantGatewayConfigDeletedEvent } from '../events/merchantgatewayconfigdeleted.event';
-
+import { MerchantGatewayConfigActivatedEvent } from "../events/merchantgatewayconfigactivated.event";
+import { MerchantGatewayConfigDeactivatedEvent } from "../events/merchantgatewayconfigdeactivated.event";
+import { MerchantGatewayConfigUpdatedEvent } from "../events/merchantgatewayconfigupdated.event";
 
 //Enfoque Event Sourcing
 import { CommandBus } from '@nestjs/cqrs';
@@ -66,7 +68,7 @@ import { EventSourcingHelper } from '../shared/decorators/event-sourcing.helper'
 import { EventSourcingConfigOptions } from '../shared/decorators/event-sourcing.decorator';
 
 
-@EventsHandler(MerchantGatewayConfigCreatedEvent, MerchantGatewayConfigUpdatedEvent, MerchantGatewayConfigDeletedEvent)
+@EventsHandler(MerchantGatewayConfigCreatedEvent, MerchantGatewayConfigUpdatedEvent, MerchantGatewayConfigDeletedEvent, MerchantGatewayConfigActivatedEvent, MerchantGatewayConfigDeactivatedEvent, MerchantGatewayConfigUpdatedEvent)
 @Injectable()
 export class MerchantGatewayConfigCommandRepository implements IEventHandler<BaseEvent>{
 
@@ -157,7 +159,12 @@ export class MerchantGatewayConfigCommandRepository implements IEventHandler<Bas
         return await this.onMerchantGatewayConfigUpdated(event);
       case 'MerchantGatewayConfigDeletedEvent':
         return await this.onMerchantGatewayConfigDeleted(event);
-
+      case 'MerchantGatewayConfigActivatedEvent':
+        return await this.onMerchantGatewayConfigActivated(event);
+      case 'MerchantGatewayConfigDeactivatedEvent':
+        return await this.onMerchantGatewayConfigDeactivated(event);
+      case 'MerchantGatewayConfigUpdatedEvent':
+        return await this.onMerchantGatewayConfigUpdated(event);
     }
     return false;
   }
@@ -251,6 +258,47 @@ export class MerchantGatewayConfigCommandRepository implements IEventHandler<Bas
     return await this.repository.delete(event.aggregateId);
   }
 
+  private async onMerchantGatewayConfigActivated(event: MerchantGatewayConfigActivatedEvent) {
+    logger.info('Ready to handle onMerchantGatewayConfigActivated event on repository:', event);
+    const payloadInstance = (event as any).payload?.instance;
+    if (payloadInstance) {
+      const projectedEntity = this.repository.create({
+        ...(payloadInstance as any),
+        id: event.aggregateId,
+        type: 'merchant-gateway-config'
+      } as Partial<MerchantGatewayConfig>);
+      return await this.repository.save(projectedEntity as MerchantGatewayConfig);
+    }
+    return true;
+  }
+
+  private async onMerchantGatewayConfigDeactivated(event: MerchantGatewayConfigDeactivatedEvent) {
+    logger.info('Ready to handle onMerchantGatewayConfigDeactivated event on repository:', event);
+    const payloadInstance = (event as any).payload?.instance;
+    if (payloadInstance) {
+      const projectedEntity = this.repository.create({
+        ...(payloadInstance as any),
+        id: event.aggregateId,
+        type: 'merchant-gateway-config'
+      } as Partial<MerchantGatewayConfig>);
+      return await this.repository.save(projectedEntity as MerchantGatewayConfig);
+    }
+    return true;
+  }
+
+  private async onMerchantGatewayConfigUpdated(event: MerchantGatewayConfigUpdatedEvent) {
+    logger.info('Ready to handle onMerchantGatewayConfigUpdated event on repository:', event);
+    const payloadInstance = (event as any).payload?.instance;
+    if (payloadInstance) {
+      const projectedEntity = this.repository.create({
+        ...(payloadInstance as any),
+        id: event.aggregateId,
+        type: 'merchant-gateway-config'
+      } as Partial<MerchantGatewayConfig>);
+      return await this.repository.save(projectedEntity as MerchantGatewayConfig);
+    }
+    return true;
+  }
 
 
   // ----------------------------

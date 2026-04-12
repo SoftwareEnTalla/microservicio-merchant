@@ -36,7 +36,9 @@ import {
   MerchantGatewayConfigCreatedEvent,
   MerchantGatewayConfigUpdatedEvent,
   MerchantGatewayConfigDeletedEvent,
-
+  MerchantGatewayConfigActivatedEvent,
+  MerchantGatewayConfigDeactivatedEvent,
+  MerchantGatewayConfigUpdatedEvent,
 } from '../events/exporting.event';
 import {
   SagaMerchantGatewayConfigFailedEvent
@@ -101,6 +103,38 @@ export class MerchantGatewayConfigCrudSaga {
     );
   };
 
+  @Saga()
+  onMerchantGatewayConfigActivated = ($events: Observable<MerchantGatewayConfigActivatedEvent>) => {
+    return $events.pipe(
+      ofType(MerchantGatewayConfigActivatedEvent),
+      tap(event => {
+        this.logger.log(`Saga iniciada para evento de dominio MerchantGatewayConfigActivated: ${event.aggregateId}`);
+      }),
+      map(() => null)
+    );
+  };
+
+  @Saga()
+  onMerchantGatewayConfigDeactivated = ($events: Observable<MerchantGatewayConfigDeactivatedEvent>) => {
+    return $events.pipe(
+      ofType(MerchantGatewayConfigDeactivatedEvent),
+      tap(event => {
+        this.logger.log(`Saga iniciada para evento de dominio MerchantGatewayConfigDeactivated: ${event.aggregateId}`);
+      }),
+      map(() => null)
+    );
+  };
+
+  @Saga()
+  onMerchantGatewayConfigUpdated = ($events: Observable<MerchantGatewayConfigUpdatedEvent>) => {
+    return $events.pipe(
+      ofType(MerchantGatewayConfigUpdatedEvent),
+      tap(event => {
+        this.logger.log(`Saga iniciada para evento de dominio MerchantGatewayConfigUpdated: ${event.aggregateId}`);
+      }),
+      map(() => null)
+    );
+  };
 
   // Método para manejo de errores en sagas
   private handleSagaError(error: Error, event: any) {

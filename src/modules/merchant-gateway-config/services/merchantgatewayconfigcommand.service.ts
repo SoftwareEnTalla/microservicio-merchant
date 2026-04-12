@@ -51,7 +51,9 @@ import { KafkaEventPublisher } from "../shared/adapters/kafka-event-publisher";
 import { ModuleRef } from "@nestjs/core";
 import { MerchantGatewayConfigQueryService } from "./merchantgatewayconfigquery.service";
 import { BaseEvent } from "../events/base.event";
-
+import { MerchantGatewayConfigActivatedEvent } from '../events/merchantgatewayconfigactivated.event';
+import { MerchantGatewayConfigDeactivatedEvent } from '../events/merchantgatewayconfigdeactivated.event';
+import { MerchantGatewayConfigUpdatedEvent } from '../events/merchantgatewayconfigupdated.event';
 
 @Injectable()
 export class MerchantGatewayConfigCommandService implements OnModuleInit {
@@ -126,6 +128,39 @@ export class MerchantGatewayConfigCommandService implements OnModuleInit {
       // Una pasarela suspendida no debe exponerse al cliente.
       if (!(this.dslValue(entityData, currentData, inputData, 'status') !== 'SUSPENDED')) {
         logger.warn('MERCHANT_GATEWAY_002: Una configuración suspendida no debe exponerse al checkout');
+      }
+
+      // Regla de servicio: merchant-gateway-config-activated-emits-domain-event
+      // Cuando una configuración de pasarela queda activa para el comercio debe emitirse un evento que permita actualizar catálogos de checkout y decisiones de payment.
+      if (this.dslValue(entityData, currentData, inputData, 'status') === 'ACTIVE' && this.dslValue(entityData, currentData, inputData, 'isActive') === true) {
+        pendingEvents.push(MerchantGatewayConfigActivatedEvent.create(
+          String(entityData['id'] ?? currentData['id'] ?? inputData?.id ?? 'merchant-gateway-config-update'),
+          (entity ?? current ?? inputData ?? {}) as any,
+          String(entityData['createdBy'] ?? currentData['createdBy'] ?? inputData?.createdBy ?? 'system'),
+          String(entityData['id'] ?? currentData['id'] ?? inputData?.id ?? 'merchant-gateway-config-update')
+        ));
+      }
+
+      // Regla de servicio: merchant-gateway-config-deactivated-emits-domain-event
+      // Cuando una configuración deja de estar activa debe emitirse un evento para impedir nuevas operaciones de cobro dependientes de esa pasarela.
+      if (this.dslValue(entityData, currentData, inputData, 'isActive') === false) {
+        pendingEvents.push(MerchantGatewayConfigDeactivatedEvent.create(
+          String(entityData['id'] ?? currentData['id'] ?? inputData?.id ?? 'merchant-gateway-config-update'),
+          (entity ?? current ?? inputData ?? {}) as any,
+          String(entityData['createdBy'] ?? currentData['createdBy'] ?? inputData?.createdBy ?? 'system'),
+          String(entityData['id'] ?? currentData['id'] ?? inputData?.id ?? 'merchant-gateway-config-update')
+        ));
+      }
+
+      // Regla de servicio: merchant-gateway-config-updated-emits-domain-event
+      // Cuando una configuración operativa cambia debe emitirse un evento para recalcular disponibilidad, límites y comportamiento del checkout.
+      if (!(this.dslValue(entityData, currentData, inputData, 'status') === undefined || this.dslValue(entityData, currentData, inputData, 'status') === null || (typeof this.dslValue(entityData, currentData, inputData, 'status') === 'string' && String(this.dslValue(entityData, currentData, inputData, 'status')).trim() === '') || (Array.isArray(this.dslValue(entityData, currentData, inputData, 'status')) && this.dslValue(entityData, currentData, inputData, 'status').length === 0) || (typeof this.dslValue(entityData, currentData, inputData, 'status') === 'object' && !Array.isArray(this.dslValue(entityData, currentData, inputData, 'status')) && Object.prototype.toString.call(this.dslValue(entityData, currentData, inputData, 'status')) === '[object Object]' && Object.keys(Object(this.dslValue(entityData, currentData, inputData, 'status'))).length === 0))) {
+        pendingEvents.push(MerchantGatewayConfigUpdatedEvent.create(
+          String(entityData['id'] ?? currentData['id'] ?? inputData?.id ?? 'merchant-gateway-config-update'),
+          (entity ?? current ?? inputData ?? {}) as any,
+          String(entityData['createdBy'] ?? currentData['createdBy'] ?? inputData?.createdBy ?? 'system'),
+          String(entityData['id'] ?? currentData['id'] ?? inputData?.id ?? 'merchant-gateway-config-update')
+        ));
       }
 
     }

@@ -40,6 +40,7 @@ import { AppDataSource, initializeDatabase } from "./data-source";
 import { MerchantQueryController } from "./modules/merchant/controllers/merchantquery.controller";
 import { GraphQLModule } from "@nestjs/graphql";
 import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
+import GraphQLJSON from "graphql-type-json";
 import { MerchantCommandService } from "./modules/merchant/services/merchantcommand.service";
 import { MerchantQueryService } from "./modules/merchant/services/merchantquery.service";
 import { CacheModule } from "@nestjs/cache-manager";
@@ -50,8 +51,6 @@ import LoggerService, { logger } from "@core/logs/logger";
 import { MerchantGatewayConfigModule } from "./modules/merchant-gateway-config/modules/merchantgatewayconfig.module";
 import { MerchantGatewayConfigCommandService } from "./modules/merchant-gateway-config/services/merchantgatewayconfigcommand.service";
 import { MerchantGatewayConfigQueryService } from "./modules/merchant-gateway-config/services/merchantgatewayconfigquery.service";
-
-//import GraphQLJSON from "graphql-type-json";
 
 /*
 //TODO unused for while dependencies
@@ -130,6 +129,7 @@ import LoggerService, { logger } from "@core/logs/logger";
             buildSchemaOptions: {
               dateScalarMode: "timestamp",
             },
+            resolvers: { JSON: GraphQLJSON },
           }),
         ]
       : []),
