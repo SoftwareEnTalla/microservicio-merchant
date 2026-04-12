@@ -1,18 +1,8 @@
 # MERCHANT Microservice
 
-**Creation Date**: 2026-04-11
+**Creation Date**: 2026-04-12
 
 **Author**: Ing. Persy Morell Guerra e Ing. Dailyn García Dominguez (SoftwarEnTalla CEO)
-
-## Contexto funcional reciente
-
-`merchant-service` publica el estado operativo de la configuración de pasarelas por comercio mediante `merchant-gateway-config`.
-
-Eventos publicados:
-
-- `MerchantGatewayConfigActivated`
-- `MerchantGatewayConfigDeactivated`
-- `MerchantGatewayConfigUpdated`
 
 ## Microservice Structure
 
