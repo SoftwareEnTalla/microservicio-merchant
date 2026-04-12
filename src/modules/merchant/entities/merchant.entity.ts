@@ -34,6 +34,7 @@ import { CreateMerchantDto, UpdateMerchantDto, DeleteMerchantDto } from '../dtos
 import { IsBoolean, IsDate, IsInt, IsNotEmpty, IsNumber, IsObject, IsOptional, IsString, IsUUID } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Field, Float, Int, ObjectType } from "@nestjs/graphql";
+import GraphQLJSON from 'graphql-type-json';
 import { plainToInstance } from 'class-transformer';
 
 
@@ -149,7 +150,7 @@ export class Merchant extends BaseEntity {
   })
   @IsObject()
   @IsOptional()
-  @Field(() => String, { description: 'Cuentas bancarias del comercio', nullable: true })
+  @Field(() => GraphQLJSON, { description: 'Cuentas bancarias del comercio', nullable: true })
   @Column({ type: 'json', nullable: true, comment: 'Cuentas bancarias del comercio' })
   bankAccounts?: Record<string, any> = {};
 
@@ -160,7 +161,7 @@ export class Merchant extends BaseEntity {
   })
   @IsObject()
   @IsOptional()
-  @Field(() => String, { description: 'Medios de cobro del comercio', nullable: true })
+  @Field(() => GraphQLJSON, { description: 'Medios de cobro del comercio', nullable: true })
   @Column({ type: 'json', nullable: true, comment: 'Medios de cobro del comercio' })
   collectionMethods?: Record<string, any> = {};
 
@@ -171,7 +172,7 @@ export class Merchant extends BaseEntity {
   })
   @IsObject()
   @IsOptional()
-  @Field(() => String, { description: 'Metadatos del comercio', nullable: true })
+  @Field(() => GraphQLJSON, { description: 'Metadatos del comercio', nullable: true })
   @Column({ type: 'json', nullable: true, comment: 'Metadatos del comercio' })
   metadata?: Record<string, any> = {};
 
