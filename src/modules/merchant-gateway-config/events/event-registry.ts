@@ -35,7 +35,6 @@ import { MerchantGatewayConfigUpdatedEvent } from './merchantgatewayconfigupdate
 import { MerchantGatewayConfigDeletedEvent } from './merchantgatewayconfigdeleted.event';
 import { MerchantGatewayConfigActivatedEvent } from './merchantgatewayconfigactivated.event';
 import { MerchantGatewayConfigDeactivatedEvent } from './merchantgatewayconfigdeactivated.event';
-import { MerchantGatewayConfigUpdatedEvent } from './merchantgatewayconfigupdated.event';
 
 export type RegisteredEventClass<T extends BaseEvent = BaseEvent> = new (
   aggregateId: string,
@@ -78,7 +77,6 @@ export const EVENT_DEFINITIONS: Record<string, RegisteredEventDefinition> = {
   'merchant-gateway-config-deleted': createEventDefinition('merchant-gateway-config-deleted', MerchantGatewayConfigDeletedEvent, EVENT_DEFINITION_OVERRIDES['merchant-gateway-config-deleted']),
   'merchant-gateway-config-activated': createEventDefinition('merchant-gateway-config-activated', MerchantGatewayConfigActivatedEvent, EVENT_DEFINITION_OVERRIDES['merchant-gateway-config-activated']),
   'merchant-gateway-config-deactivated': createEventDefinition('merchant-gateway-config-deactivated', MerchantGatewayConfigDeactivatedEvent, EVENT_DEFINITION_OVERRIDES['merchant-gateway-config-deactivated']),
-  'merchant-gateway-config-updated': createEventDefinition('merchant-gateway-config-updated', MerchantGatewayConfigUpdatedEvent, EVENT_DEFINITION_OVERRIDES['merchant-gateway-config-updated']),
 };
 
 export const EVENT_REGISTRY: Record<string, RegisteredEventClass> = Object.fromEntries(

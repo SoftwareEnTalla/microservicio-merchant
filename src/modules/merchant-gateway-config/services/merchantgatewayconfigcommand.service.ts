@@ -53,7 +53,6 @@ import { MerchantGatewayConfigQueryService } from "./merchantgatewayconfigquery.
 import { BaseEvent } from "../events/base.event";
 import { MerchantGatewayConfigActivatedEvent } from '../events/merchantgatewayconfigactivated.event';
 import { MerchantGatewayConfigDeactivatedEvent } from '../events/merchantgatewayconfigdeactivated.event';
-import { MerchantGatewayConfigUpdatedEvent } from '../events/merchantgatewayconfigupdated.event';
 
 @Injectable()
 export class MerchantGatewayConfigCommandService implements OnModuleInit {

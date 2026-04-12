@@ -32,7 +32,6 @@ export * from "./merchantgatewayconfigcreated.event";
 export * from "./merchantgatewayconfigupdated.event";
 export * from "./merchantgatewayconfigactivated.event";
 export * from "./merchantgatewayconfigdeactivated.event";
-export * from "./merchantgatewayconfigupdated.event";
 export * from "./event-registry";
 export * from "./base.event";
 export * from "./merchantgatewayconfig-failed.event";

@@ -38,7 +38,6 @@ import {
   MerchantGatewayConfigDeletedEvent,
   MerchantGatewayConfigActivatedEvent,
   MerchantGatewayConfigDeactivatedEvent,
-  MerchantGatewayConfigUpdatedEvent,
 } from '../events/exporting.event';
 import {
   SagaMerchantGatewayConfigFailedEvent
@@ -120,17 +119,6 @@ export class MerchantGatewayConfigCrudSaga {
       ofType(MerchantGatewayConfigDeactivatedEvent),
       tap(event => {
         this.logger.log(`Saga iniciada para evento de dominio MerchantGatewayConfigDeactivated: ${event.aggregateId}`);
-      }),
-      map(() => null)
-    );
-  };
-
-  @Saga()
-  onMerchantGatewayConfigUpdated = ($events: Observable<MerchantGatewayConfigUpdatedEvent>) => {
-    return $events.pipe(
-      ofType(MerchantGatewayConfigUpdatedEvent),
-      tap(event => {
-        this.logger.log(`Saga iniciada para evento de dominio MerchantGatewayConfigUpdated: ${event.aggregateId}`);
       }),
       map(() => null)
     );
