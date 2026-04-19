@@ -48,6 +48,11 @@ import {
   DeleteMerchantGatewayConfigCommand
 } from '../commands/exporting.command';
 
+//Logger - Codetrace
+import { LogExecutionTime } from 'src/common/logger/loggers.functions';
+import { LoggerClient } from 'src/common/logger/logger.client';
+import { logger } from '@core/logs/logger';
+
 @Injectable()
 export class MerchantGatewayConfigCrudSaga {
   private readonly logger = new Logger(MerchantGatewayConfigCrudSaga.name);
@@ -64,8 +69,9 @@ export class MerchantGatewayConfigCrudSaga {
       ofType(MerchantGatewayConfigCreatedEvent),
       tap(event => {
         this.logger.log(`Saga iniciada para creación de MerchantGatewayConfig: ${event.aggregateId}`);
-        // Lógica post-creación (ej: enviar notificación)
+        void this.handleMerchantGatewayConfigCreated(event);
       }),
+      map(() => null),
       map(event => {
         // Ejecutar comandos adicionales si es necesario
         return null;
@@ -80,8 +86,9 @@ export class MerchantGatewayConfigCrudSaga {
       ofType(MerchantGatewayConfigUpdatedEvent),
       tap(event => {
         this.logger.log(`Saga iniciada para actualización de MerchantGatewayConfig: ${event.aggregateId}`);
-        // Lógica post-actualización (ej: actualizar caché)
-      })
+        void this.handleMerchantGatewayConfigUpdated(event);
+      }),
+      map(() => null)
     );
   };
 
@@ -92,8 +99,9 @@ export class MerchantGatewayConfigCrudSaga {
       ofType(MerchantGatewayConfigDeletedEvent),
       tap(event => {
         this.logger.log(`Saga iniciada para eliminación de MerchantGatewayConfig: ${event.aggregateId}`);
-        // Lógica post-eliminación (ej: limpiar relaciones)
+        void this.handleMerchantGatewayConfigDeleted(event);
       }),
+      map(() => null),
       map(event => {
         // Ejemplo: Ejecutar comando de compensación
         // return this.commandBus.execute(new CompensateDeleteCommand(...));
@@ -123,6 +131,78 @@ export class MerchantGatewayConfigCrudSaga {
       map(() => null)
     );
   };
+
+
+  @LogExecutionTime({
+    layer: 'saga',
+    callback: async (logData, client) => {
+      try {
+        logger.info('Codetrace saga event:', [logData, client]);
+        return await client.send(logData);
+      } catch (error) {
+        logger.info('Error enviando traza de saga:', logData);
+        throw error;
+      }
+    },
+    client: LoggerClient.getInstance()
+      .registerClient(MerchantGatewayConfigCrudSaga.name)
+      .get(MerchantGatewayConfigCrudSaga.name),
+  })
+  private async handleMerchantGatewayConfigCreated(event: MerchantGatewayConfigCreatedEvent): Promise<void> {
+    try {
+      this.logger.log(`Saga MerchantGatewayConfig Created completada: ${event.aggregateId}`);
+    } catch (error: any) {
+      this.handleSagaError(error, event);
+    }
+  }
+
+
+  @LogExecutionTime({
+    layer: 'saga',
+    callback: async (logData, client) => {
+      try {
+        logger.info('Codetrace saga event:', [logData, client]);
+        return await client.send(logData);
+      } catch (error) {
+        logger.info('Error enviando traza de saga:', logData);
+        throw error;
+      }
+    },
+    client: LoggerClient.getInstance()
+      .registerClient(MerchantGatewayConfigCrudSaga.name)
+      .get(MerchantGatewayConfigCrudSaga.name),
+  })
+  private async handleMerchantGatewayConfigUpdated(event: MerchantGatewayConfigUpdatedEvent): Promise<void> {
+    try {
+      this.logger.log(`Saga MerchantGatewayConfig Updated completada: ${event.aggregateId}`);
+    } catch (error: any) {
+      this.handleSagaError(error, event);
+    }
+  }
+
+
+  @LogExecutionTime({
+    layer: 'saga',
+    callback: async (logData, client) => {
+      try {
+        logger.info('Codetrace saga event:', [logData, client]);
+        return await client.send(logData);
+      } catch (error) {
+        logger.info('Error enviando traza de saga:', logData);
+        throw error;
+      }
+    },
+    client: LoggerClient.getInstance()
+      .registerClient(MerchantGatewayConfigCrudSaga.name)
+      .get(MerchantGatewayConfigCrudSaga.name),
+  })
+  private async handleMerchantGatewayConfigDeleted(event: MerchantGatewayConfigDeletedEvent): Promise<void> {
+    try {
+      this.logger.log(`Saga MerchantGatewayConfig Deleted completada: ${event.aggregateId}`);
+    } catch (error: any) {
+      this.handleSagaError(error, event);
+    }
+  }
 
   // Método para manejo de errores en sagas
   private handleSagaError(error: Error, event: any) {
