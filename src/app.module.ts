@@ -48,6 +48,9 @@ import { LoggingModule } from "./modules/merchant/modules/logger.module";
 import { ModuleRef } from "@nestjs/core";
 import { ServiceRegistry } from "@core/service-registry";
 import LoggerService, { logger } from "@core/logs/logger";
+import { CatalogSyncLogModule } from "./modules/catalog-sync-log/modules/catalogsynclog.module";
+import { CatalogSyncLogCommandService } from "./modules/catalog-sync-log/services/catalogsynclogcommand.service";
+import { CatalogSyncLogQueryService } from "./modules/catalog-sync-log/services/catalogsynclogquery.service";
 import { MerchantGatewayConfigModule } from "./modules/merchant-gateway-config/modules/merchantgatewayconfig.module";
 import { MerchantGatewayConfigCommandService } from "./modules/merchant-gateway-config/services/merchantgatewayconfigcommand.service";
 import { MerchantGatewayConfigQueryService } from "./modules/merchant-gateway-config/services/merchantgatewayconfigquery.service";
@@ -114,7 +117,8 @@ import LoggerService, { logger } from "@core/logs/logger";
      */
     CqrsModule,
     MerchantModule,
-        MerchantGatewayConfigModule,    
+        CatalogSyncLogModule,
+    MerchantGatewayConfigModule,    
     /**
      * Módulo Logger de la aplicación
      */
@@ -200,6 +204,8 @@ export class MerchantAppModule implements OnModuleInit {
     ServiceRegistry.getInstance().registryAll([
       MerchantCommandService,
       MerchantQueryService,
+      CatalogSyncLogCommandService,
+      CatalogSyncLogQueryService,
       MerchantGatewayConfigCommandService,
       MerchantGatewayConfigQueryService,    
     ]);
