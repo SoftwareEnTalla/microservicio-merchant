@@ -55,6 +55,8 @@ import { MerchantGatewayConfigModule } from "./modules/merchant-gateway-config/m
 import { MerchantGatewayConfigCommandService } from "./modules/merchant-gateway-config/services/merchantgatewayconfigcommand.service";
 import { MerchantGatewayConfigQueryService } from "./modules/merchant-gateway-config/services/merchantgatewayconfigquery.service";
 
+import { CatalogClientModule } from "./modules/catalog-client/catalog-client.module";
+
 /*
 //TODO unused for while dependencies
 import { I18nModule } from "nestjs-i18n";
@@ -122,6 +124,7 @@ import LoggerService, { logger } from "@core/logs/logger";
     /**
      * Módulo Logger de la aplicación
      */
+    CatalogClientModule,
     LoggingModule,
 
     // GraphQL solo si GRAPHQL_ENABLED=true
