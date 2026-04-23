@@ -29,38 +29,35 @@
  */
 
 
-import { IEvent } from '@nestjs/cqrs';
+import { UpdateMerchantDto } from '../dtos/all-dto';
+import { Merchant } from '../entities/merchant.entity';
+import { BaseEvent, PayloadEvent } from './base.event'; 
+import { v4 as uuidv4 } from "uuid";
 
-export interface EventMetadata {
-  initiatedBy: string;
-  correlationId: string;
-  causationId?: string;
-  eventId?: string;
-  eventName?: string;
-  eventVersion?: string;
-  sourceService?: string;
-  traceId?: string;
-  retryCount?: number;
-  occurredOn?: string;
-  idempotencyKey?: string;
-  originalTopic?: string;
-  [key: string]: any;
-}
-
-export abstract class BaseEvent implements IEvent {
-  //Constructor de BaseEvent
+export class MerchantEmbeddingUpdatedEvent extends BaseEvent {
   constructor(
     public readonly aggregateId: string,
-    public readonly timestamp: Date = new Date()
+    public readonly payload: PayloadEvent<UpdateMerchantDto|Merchant>
   ) {
-    //Aquí coloca implementación escencial no más de BaseEvent
+    super(aggregateId);
   }
-}
-export abstract class BaseFailedEvent implements IEvent {
-  constructor(public readonly error:Error,public readonly event:any) {}
-}
 
-export interface PayloadEvent<T = any> {
-  instance: T;
-  metadata: EventMetadata;
+  
+         // Método estático para construcción consistente del evento
+        static create(
+          instanceId: string,
+          instance: UpdateMerchantDto|Merchant,
+          userId: string,
+          correlationId?: string
+        ): MerchantEmbeddingUpdatedEvent {
+          return new MerchantEmbeddingUpdatedEvent(instanceId, {
+            instance: instance,
+            metadata: {
+              initiatedBy: userId,
+              correlationId:correlationId || uuidv4(),
+            },
+          });
+        }
+        
+
 }

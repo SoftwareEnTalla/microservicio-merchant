@@ -30,7 +30,7 @@
 export * from "./merchantdeleted.event"; 
 export * from "./merchantcreated.event";
 export * from "./merchantupdated.event";
-
+export * from "./merchantembeddingupdated.event";
 export * from "./event-registry";
 export * from "./base.event";
 export * from "./merchant-failed.event";

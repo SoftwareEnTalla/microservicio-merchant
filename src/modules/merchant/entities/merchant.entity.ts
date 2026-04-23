@@ -176,6 +176,28 @@ export class Merchant extends BaseEntity {
   @Column({ type: 'json', nullable: true, comment: 'Metadatos del comercio' })
   metadata?: Record<string, any> = {};
 
+  @ApiProperty({
+    type: () => Array,
+    nullable: true,
+    description: 'Embedding semántico (pgvector) del merchant para búsquedas por similitud. Se calcula al crear/actualizar a partir de displayName + legalName + metadata textual.',
+  })
+  @IsArray()
+  @IsOptional()
+  @Field(() => [Float], { description: 'Embedding semántico (pgvector) del merchant para búsquedas por similitud. Se calcula al crear/actualizar a partir de displayName + legalName + metadata textual.', nullable: true })
+  @Column({ type: 'text', nullable: true, comment: 'Embedding semántico (pgvector) del merchant para búsquedas por similitud. Se calcula al crear/actualizar a partir de displayName + legalName + metadata textual.' })
+  semanticEmbedding?: number[] = [];
+
+  @ApiProperty({
+    type: () => Date,
+    nullable: true,
+    description: 'Fecha del último cálculo del embedding semántico.',
+  })
+  @IsDate()
+  @IsOptional()
+  @Field(() => Date, { description: 'Fecha del último cálculo del embedding semántico.', nullable: true })
+  @Column({ type: 'timestamp', nullable: true, comment: 'Fecha del último cálculo del embedding semántico.' })
+  semanticEmbeddingUpdatedAt?: Date = new Date();
+
   protected executeDslLifecycle(): void {
     // Rule: merchant-must-reference-user
     // Todo merchant debe mantener referencia a un user canónico.

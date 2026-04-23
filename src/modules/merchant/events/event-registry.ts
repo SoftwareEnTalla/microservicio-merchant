@@ -33,6 +33,7 @@ import { BaseEvent } from './base.event';
 import { MerchantCreatedEvent } from './merchantcreated.event';
 import { MerchantUpdatedEvent } from './merchantupdated.event';
 import { MerchantDeletedEvent } from './merchantdeleted.event';
+import { MerchantEmbeddingUpdatedEvent } from './merchantembeddingupdated.event';
 
 export type RegisteredEventClass<T extends BaseEvent = BaseEvent> = new (
   aggregateId: string,
@@ -66,14 +67,18 @@ const createEventDefinition = <T extends BaseEvent>(
 });
 
 const EVENT_DEFINITION_OVERRIDES: Partial<Record<string, Partial<Omit<RegisteredEventDefinition, 'topic' | 'eventName' | 'eventClass'>>>> = {
-
+  'merchant-embedding-updated': {
+    version: '1.0.0',
+    maxRetries: 3,
+    replayable: true,
+  },
 };
 
 export const EVENT_DEFINITIONS: Record<string, RegisteredEventDefinition> = {
   'merchant-created': createEventDefinition('merchant-created', MerchantCreatedEvent, EVENT_DEFINITION_OVERRIDES['merchant-created']),
   'merchant-updated': createEventDefinition('merchant-updated', MerchantUpdatedEvent, EVENT_DEFINITION_OVERRIDES['merchant-updated']),
   'merchant-deleted': createEventDefinition('merchant-deleted', MerchantDeletedEvent, EVENT_DEFINITION_OVERRIDES['merchant-deleted']),
-
+  'merchant-embedding-updated': createEventDefinition('merchant-embedding-updated', MerchantEmbeddingUpdatedEvent, EVENT_DEFINITION_OVERRIDES['merchant-embedding-updated']),
 };
 
 export const EVENT_REGISTRY: Record<string, RegisteredEventClass> = Object.fromEntries(

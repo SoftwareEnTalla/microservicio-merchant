@@ -51,7 +51,7 @@ import { KafkaEventPublisher } from "../shared/adapters/kafka-event-publisher";
 import { ModuleRef } from "@nestjs/core";
 import { MerchantQueryService } from "./merchantquery.service";
 import { BaseEvent } from "../events/base.event";
-
+import { MerchantEmbeddingUpdatedEvent } from '../events/merchantembeddingupdated.event';
 
 @Injectable()
 export class MerchantCommandService implements OnModuleInit {
