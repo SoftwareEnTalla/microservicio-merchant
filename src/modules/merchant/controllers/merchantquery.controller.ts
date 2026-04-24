@@ -50,6 +50,7 @@ import { Helper } from "src/common/helpers/helpers";
 import { MerchantDto } from "../dtos/all-dto";
 
 import { logger } from '@core/logs/logger';
+import { SemanticSearchService } from "src/shared/semantic-search/semantic-search.service";
 
 
 /**
@@ -77,7 +78,10 @@ function parseWhereParam(all: Record<string, any> = {}): Record<string, any> {
 export class MerchantQueryController {
   #logger = new Logger(MerchantQueryController.name);
 
-  constructor(private readonly service: MerchantQueryService) {}
+  constructor(
+    private readonly service: MerchantQueryService,
+    private readonly semanticSearch: SemanticSearchService,
+  ) {}
 
   @Get("list")
   @ApiOperation({ summary: "Get all merchant with optional pagination" })
@@ -337,6 +341,58 @@ export class MerchantQueryController {
       return Helper.throwCachedError(error);
     }
   }
+
+  /**
+   * Búsqueda semántica / textual sobre merchants.
+   *
+   * - `semanticSearch=true` (default) usa cosine similarity sobre `semanticEmbedding`.
+   * - `semanticSearch=false` fuerza búsqueda textual.
+   * - Si el modo semántico no produce resultados sobre el umbral, cae a búsqueda
+   *   textual devolviendo `searchMode=TEXTUAL_FALLBACK`.
+   *
+   * IMPORTANTE: declarado ANTES de `@Get(":id")` para evitar que `:id` capture
+   * el segmento `semantic-search`.
+   */
+  @Get("semantic-search")
+  @ApiOperation({ summary: "Semantic (pgvector) or textual search over merchants" })
+  @ApiQuery({ name: "q", required: true, type: String, description: "Texto de búsqueda" })
+  @ApiQuery({ name: "semanticSearch", required: false, type: Boolean, description: "Default true. Si false usa búsqueda textual." })
+  @ApiQuery({ name: "similarityThreshold", required: false, type: Number, description: "Default 0.7" })
+  @ApiQuery({ name: "limit", required: false, type: Number })
+  async semanticSearchEndpoint(
+    @Query("q") q: string,
+    @Query("semanticSearch") semanticSearch?: string,
+    @Query("similarityThreshold") similarityThreshold?: string,
+    @Query("limit") limit?: string,
+  ): Promise<{ ok: boolean; data: Merchant[]; totalCount: number; searchMode: string; similarityThreshold: number; scores?: number[] }> {
+    try {
+      const semanticEnabled = semanticSearch === undefined ? true : String(semanticSearch).toLowerCase() !== 'false';
+      const threshold = similarityThreshold !== undefined && !Number.isNaN(Number(similarityThreshold)) ? Number(similarityThreshold) : 0.7;
+      const lim = limit !== undefined && !Number.isNaN(Number(limit)) ? Number(limit) : 25;
+      const paginationArgs: PaginationArgs = PaginationArgs.createPaginator(
+        1, Math.max(lim * 4, 200), "createdAt", valueOfOrderBy(OrderBy.asc), "", undefined, undefined,
+      );
+      const pageResp = await this.service.findWithPagination({} as any, paginationArgs) as any;
+      const items: Merchant[] = Array.isArray(pageResp?.data) ? pageResp.data : (Array.isArray(pageResp?.items) ? pageResp.items : []);
+      const result = await this.semanticSearch.findSimilar(items, q || "", {
+        semanticSearch: semanticEnabled,
+        similarityThreshold: threshold,
+        limit: lim,
+      });
+      return {
+        ok: true,
+        data: result.items,
+        totalCount: result.totalCount,
+        searchMode: result.searchMode,
+        similarityThreshold: result.similarityThreshold,
+        scores: result.scores,
+      };
+    } catch (error) {
+      logger.error(error);
+      return Helper.throwCachedError(error);
+    }
+  }
+
   @Get(":id")
   @ApiOperation({ summary: "Get merchant by ID" })
   @ApiResponse({ status: 200, type: MerchantResponse<Merchant> })

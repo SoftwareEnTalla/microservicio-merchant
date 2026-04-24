@@ -52,6 +52,7 @@ import { ModuleRef } from "@nestjs/core";
 import { MerchantQueryService } from "./merchantquery.service";
 import { BaseEvent } from "../events/base.event";
 import { MerchantEmbeddingUpdatedEvent } from '../events/merchantembeddingupdated.event';
+import { SemanticSearchService } from "src/shared/semantic-search/semantic-search.service";
 
 @Injectable()
 export class MerchantCommandService implements OnModuleInit {
@@ -64,9 +65,57 @@ export class MerchantCommandService implements OnModuleInit {
     private readonly commandBus: CommandBus,
     private readonly eventStore: EventStoreService,
     private readonly eventPublisher: KafkaEventPublisher,
-    private moduleRef: ModuleRef
+    private moduleRef: ModuleRef,
+    private readonly semanticSearch: SemanticSearchService,
   ) {
     //Inicialice aquí propiedades o atributos
+  }
+
+  /**
+   * Construye el texto fuente a partir del cual se calcula el embedding semántico.
+   * Orden y campos alineados con la historia de usuario del merchant.
+   */
+  private buildSemanticSourceText(entity: Merchant): string {
+    const parts: string[] = [];
+    const push = (v: any) => { if (v !== undefined && v !== null && String(v).trim() !== '') parts.push(String(v)); };
+    push((entity as any).displayName);
+    push((entity as any).legalName);
+    push((entity as any).slug);
+    push((entity as any).code);
+    const metadata = (entity as any).metadata;
+    if (metadata && typeof metadata === 'object') {
+      try { push(JSON.stringify(metadata)); } catch { /* noop */ }
+    }
+    return parts.join(' \n ');
+  }
+
+  /**
+   * Calcula el embedding semántico, lo persiste y publica el evento de dominio
+   * `MerchantEmbeddingUpdated`. No bloquea el flujo principal ante fallos.
+   */
+  private async refreshSemanticEmbedding(entity: Merchant): Promise<void> {
+    if (!entity) return;
+    try {
+      const source = this.buildSemanticSourceText(entity);
+      if (!source.trim()) return;
+      const embedding = await this.semanticSearch.computeEmbedding(source);
+      const now = new Date();
+      (entity as any).semanticEmbedding = embedding;
+      (entity as any).semanticEmbeddingUpdatedAt = now;
+      await this.repository.update(entity.id, {
+        semanticEmbedding: embedding as any,
+        semanticEmbeddingUpdatedAt: now as any,
+      } as any);
+      await this.publishDslDomainEvents([
+        MerchantEmbeddingUpdatedEvent.create(
+          entity.id,
+          entity,
+          (entity as any).updatedBy || 'system',
+        ),
+      ]);
+    } catch (err) {
+      this.#logger.warn(`No se pudo actualizar semanticEmbedding del merchant ${entity?.id}: ${(err as Error)?.message}`);
+    }
   }
 
 
@@ -169,6 +218,9 @@ export class MerchantCommandService implements OnModuleInit {
       await this.applyDslServiceRules("create", createMerchantDtoInput as Record<string, any>, candidate, null, false);
       const entity = await this.repository.create(candidate);
       await this.applyDslServiceRules("create", createMerchantDtoInput as Record<string, any>, entity, null, true);
+      if (entity) {
+        await this.refreshSemanticEmbedding(entity);
+      }
       logger.info("Entity created on service:", entity);
       // Respuesta si el merchant no existe
       if (!entity)
@@ -278,6 +330,12 @@ export class MerchantCommandService implements OnModuleInit {
       // Respuesta si el merchant no existe
       if (!entity)
         throw new NotFoundException("Entidades Merchants no encontradas.");
+      // Recalcular embedding si cambió campo relevante o la petición explícita lo fuerza.
+      const semanticRelevantFields = ['displayName','legalName','slug','code','metadata'];
+      const touched = Object.keys(partialEntity || {}).some(k => semanticRelevantFields.includes(k));
+      if (touched) {
+        await this.refreshSemanticEmbedding(entity);
+      }
       // Devolver merchant
       return {
         ok: true,

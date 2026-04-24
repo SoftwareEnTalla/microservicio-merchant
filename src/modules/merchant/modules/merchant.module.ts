@@ -60,6 +60,7 @@ import { MerchantLoggingInterceptor } from "../interceptors/merchant.logging.int
 
 //Event-Sourcing dependencies
 import { EventStoreService } from "../shared/event-store/event-store.service";
+import { SemanticSearchModule } from "src/shared/semantic-search/semantic-search.module";
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { EventStoreService } from "../shared/event-store/event-store.service";
     KafkaModule,
     TypeOrmModule.forFeature([BaseEntity, Merchant]), // Incluir BaseEntity para herencia
     CacheModule.register(), // Importa el módulo de caché
+    SemanticSearchModule,
   ],
   controllers: [MerchantCommandController, MerchantQueryController],
   providers: [

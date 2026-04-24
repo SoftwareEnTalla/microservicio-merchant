@@ -54,4 +54,29 @@ if command -v kcat >/dev/null 2>&1; then
   if [[ -n "$KT" ]]; then log_ok "Kafka topics merchant.* detectados"; else log_warn "Sin topics merchant.*"; fi
 else log_warn "kcat no instalado — skipping"; fi
 
+log_step 6 "Semantic search (pgvector + IA)"
+# Por defecto semanticSearch=true; permite TEXTUAL_FALLBACK cuando no hay matches
+SEM_RESP=$(do_get "$BASE_URL/merchants/query/semantic-search?q=E2E%20Merchant" "$AUTH")
+SEM_CODE=$(extract_code "$SEM_RESP")
+if [[ "$SEM_CODE" =~ ^(200|201)$ ]]; then
+  MODE=$(echo "$SEM_RESP" | sed -n 's/.*"searchMode":"\([^"]*\)".*/\1/p' | head -1)
+  if [[ "$MODE" =~ ^(SEMANTIC|TEXTUAL|TEXTUAL_FALLBACK)$ ]]; then
+    log_ok "semantic-search OK ($SEM_CODE, mode=$MODE)"
+  else
+    log_fail "semantic-search no devolvió searchMode esperado"
+  fi
+else
+  log_fail "semantic-search respondió $SEM_CODE"
+fi
+
+# Forzar modo textual: semanticSearch=false
+SEM_TXT=$(do_get "$BASE_URL/merchants/query/semantic-search?q=E2E&semanticSearch=false" "$AUTH")
+SEM_TXT_CODE=$(extract_code "$SEM_TXT")
+SEM_TXT_MODE=$(echo "$SEM_TXT" | sed -n 's/.*"searchMode":"\([^"]*\)".*/\1/p' | head -1)
+if [[ "$SEM_TXT_CODE" =~ ^(200|201)$ && "$SEM_TXT_MODE" == "TEXTUAL" ]]; then
+  log_ok "semantic-search semanticSearch=false -> TEXTUAL"
+else
+  log_fail "semantic-search semanticSearch=false code=$SEM_TXT_CODE mode=$SEM_TXT_MODE"
+fi
+
 print_summary "merchant-service"

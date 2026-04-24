@@ -275,6 +275,29 @@ export class MerchantGatewayConfigCrudSaga {
 
 ---
 
+## 8.5 Búsqueda semántica (pgvector + IA)
+
+El campo `semanticEmbedding` (tipo `vector`, 1536 dim., OpenAI text-embedding-3-small compatible) se calcula automáticamente al **crear/actualizar** un merchant a partir de `displayName + legalName + slug + code + metadata`. `semanticEmbeddingUpdatedAt` guarda el timestamp del último cálculo. Al actualizar el embedding se publica el evento de dominio `MerchantEmbeddingUpdated` (topic `merchant-embedding-updated`).
+
+### Endpoint
+
+`GET /merchants/query/semantic-search?q=TEXT&semanticSearch=true&similarityThreshold=0.7&limit=25`
+
+| Query param | Tipo | Default | Descripción |
+|-------------|------|---------|-------------|
+| `q` | string | — (requerido) | Texto a buscar |
+| `semanticSearch` | boolean | `true` | Si `false` se fuerza búsqueda textual |
+| `similarityThreshold` | number | `0.7` | Umbral de similitud coseno (0..1) |
+| `limit` | number | `25` | Máximo de resultados |
+
+La respuesta incluye `searchMode` con tres valores: `SEMANTIC`, `TEXTUAL`, `TEXTUAL_FALLBACK` (cuando no hay matches semánticos sobre el umbral se cae a búsqueda textual sobre los mismos ítems). En modo `SEMANTIC` se devuelve además el array `scores` con la similitud de cada item.
+
+### Implementación técnica
+
+- Columna física: `text` con transformer JSON en TypeORM (evita dependencia directa del tipo `vector` del driver). Una migración posterior puede promover la columna a `VECTOR(1536)` real cuando la infraestructura tenga `pgvector` cargado.
+- Servicio: `SemanticSearchService` en `src/shared/semantic-search/`. La implementación por defecto calcula embeddings deterministas basados en hashing (apto para e2e y desarrollo local). Para producción, sustituir `computeEmbedding` por una integración real (p. ej. OpenAI).
+- Infraestructura: el contenedor de postgres utiliza la imagen `imresamu/postgis-pgvector:16-3.4` y habilita `CREATE EXTENSION IF NOT EXISTS vector;` en el primer arranque (`data-center/postgres/initdb/01-extensions.sql`).
+
 ## 9. Test E2E con curl
 
 ```bash
