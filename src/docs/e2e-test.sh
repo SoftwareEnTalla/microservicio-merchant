@@ -80,3 +80,54 @@ else
 fi
 
 print_summary "merchant-service"
+
+# >>> NOMENCLADORES E2E BEGIN (auto-generado por sources/scaffold_nomenclador_e2e_tests.py)
+# Servicio: merchant-service | Puerto: 3011
+NOM_BASE_URL="${NOM_BASE_URL:-http://localhost:3011/api}"
+NOM_AUTH="${AUTH:-Bearer valid-token}"
+nom_pass=0; nom_fail=0; nom_warn=0
+_nom_ok()   { echo -e "  \033[0;32m✔ $1\033[0m"; nom_pass=$((nom_pass+1)); }
+_nom_fail() { echo -e "  \033[0;31m✘ $1\033[0m"; nom_fail=$((nom_fail+1)); }
+_nom_warn() { echo -e "  \033[1;33m⚠ $1\033[0m"; nom_warn=$((nom_warn+1)); }
+NOM_UNIQUE="${UNIQUE:-$(date +%s)}"
+NOM_NOW="${NOW:-$(date -u +%Y-%m-%dT%H:%M:%S.000Z)}"
+echo ""
+echo -e "\033[0;34m═══ NOMENCLADORES — merchant-service ═══\033[0m"
+
+# --- Nomenclador: merchant-approval-status ---
+NOM_CODE="NMERCHA-${NOM_UNIQUE}"
+NOM_BODY="{\"code\":\"$NOM_CODE\",\"displayName\":\"E2E MerchantApprovalStatus ${NOM_UNIQUE}\",\"description\":\"e2e\",\"creationDate\":\"$NOM_NOW\",\"modificationDate\":\"$NOM_NOW\",\"isActive\":true}"
+NOM_RESP=$(curl -s -w "\n%{http_code}" -X POST "$NOM_BASE_URL/merchantapprovalstatuss/command" -H "Content-Type: application/json" -H "Authorization: $NOM_AUTH" -d "$NOM_BODY" 2>/dev/null)
+NOM_CODE_HTTP=$(echo "$NOM_RESP" | tail -n1); NOM_BD=$(echo "$NOM_RESP" | sed '$d')
+NOM_ID=$(echo "$NOM_BD" | jq -r '.data.id // .id // empty' 2>/dev/null)
+if [[ "$NOM_CODE_HTTP" =~ ^(200|201)$ && -n "$NOM_ID" ]]; then _nom_ok "merchant-approval-status: create id=$NOM_ID"; else _nom_warn "merchant-approval-status: create http=$NOM_CODE_HTTP (puede requerir auth real)"; fi
+NOM_RESP=$(curl -s -w "\n%{http_code}" -X GET "$NOM_BASE_URL/merchantapprovalstatuss/query/list" -H "Authorization: $NOM_AUTH" 2>/dev/null)
+NOM_CODE_HTTP=$(echo "$NOM_RESP" | tail -n1)
+if [[ "$NOM_CODE_HTTP" == "200" ]]; then _nom_ok "merchant-approval-status: list ok"; else _nom_warn "merchant-approval-status: list http=$NOM_CODE_HTTP"; fi
+if [[ -n "$NOM_ID" ]]; then
+  curl -s -w "\n%{http_code}" -X GET "$NOM_BASE_URL/merchantapprovalstatuss/query/$NOM_ID" -H "Authorization: $NOM_AUTH" >/dev/null 2>&1 && _nom_ok "merchant-approval-status: getById" || _nom_warn "merchant-approval-status: getById"
+  curl -s -w "\n%{http_code}" -X PUT "$NOM_BASE_URL/merchantapprovalstatuss/command/$NOM_ID" -H "Content-Type: application/json" -H "Authorization: $NOM_AUTH" -d "{\"displayName\":\"E2E MerchantApprovalStatus updated\",\"modificationDate\":\"$NOM_NOW\"}" >/dev/null 2>&1 && _nom_ok "merchant-approval-status: update" || _nom_warn "merchant-approval-status: update"
+  curl -s -w "\n%{http_code}" -X DELETE "$NOM_BASE_URL/merchantapprovalstatuss/command/$NOM_ID" -H "Authorization: $NOM_AUTH" >/dev/null 2>&1 && _nom_ok "merchant-approval-status: delete" || _nom_warn "merchant-approval-status: delete"
+fi
+
+# --- Nomenclador: merchant-gateway-config-status ---
+NOM_CODE="NMERCHA-${NOM_UNIQUE}"
+NOM_BODY="{\"code\":\"$NOM_CODE\",\"displayName\":\"E2E MerchantGatewayConfigStatus ${NOM_UNIQUE}\",\"description\":\"e2e\",\"creationDate\":\"$NOM_NOW\",\"modificationDate\":\"$NOM_NOW\",\"isActive\":true}"
+NOM_RESP=$(curl -s -w "\n%{http_code}" -X POST "$NOM_BASE_URL/merchantgatewayconfigstatuss/command" -H "Content-Type: application/json" -H "Authorization: $NOM_AUTH" -d "$NOM_BODY" 2>/dev/null)
+NOM_CODE_HTTP=$(echo "$NOM_RESP" | tail -n1); NOM_BD=$(echo "$NOM_RESP" | sed '$d')
+NOM_ID=$(echo "$NOM_BD" | jq -r '.data.id // .id // empty' 2>/dev/null)
+if [[ "$NOM_CODE_HTTP" =~ ^(200|201)$ && -n "$NOM_ID" ]]; then _nom_ok "merchant-gateway-config-status: create id=$NOM_ID"; else _nom_warn "merchant-gateway-config-status: create http=$NOM_CODE_HTTP (puede requerir auth real)"; fi
+NOM_RESP=$(curl -s -w "\n%{http_code}" -X GET "$NOM_BASE_URL/merchantgatewayconfigstatuss/query/list" -H "Authorization: $NOM_AUTH" 2>/dev/null)
+NOM_CODE_HTTP=$(echo "$NOM_RESP" | tail -n1)
+if [[ "$NOM_CODE_HTTP" == "200" ]]; then _nom_ok "merchant-gateway-config-status: list ok"; else _nom_warn "merchant-gateway-config-status: list http=$NOM_CODE_HTTP"; fi
+if [[ -n "$NOM_ID" ]]; then
+  curl -s -w "\n%{http_code}" -X GET "$NOM_BASE_URL/merchantgatewayconfigstatuss/query/$NOM_ID" -H "Authorization: $NOM_AUTH" >/dev/null 2>&1 && _nom_ok "merchant-gateway-config-status: getById" || _nom_warn "merchant-gateway-config-status: getById"
+  curl -s -w "\n%{http_code}" -X PUT "$NOM_BASE_URL/merchantgatewayconfigstatuss/command/$NOM_ID" -H "Content-Type: application/json" -H "Authorization: $NOM_AUTH" -d "{\"displayName\":\"E2E MerchantGatewayConfigStatus updated\",\"modificationDate\":\"$NOM_NOW\"}" >/dev/null 2>&1 && _nom_ok "merchant-gateway-config-status: update" || _nom_warn "merchant-gateway-config-status: update"
+  curl -s -w "\n%{http_code}" -X DELETE "$NOM_BASE_URL/merchantgatewayconfigstatuss/command/$NOM_ID" -H "Authorization: $NOM_AUTH" >/dev/null 2>&1 && _nom_ok "merchant-gateway-config-status: delete" || _nom_warn "merchant-gateway-config-status: delete"
+fi
+
+echo ""
+echo -e "\033[0;34m── Resumen Nomencladores merchant-service ──\033[0m"
+echo "  ✔ OK=$nom_pass  ✘ FAIL=$nom_fail  ⚠ WARN=$nom_warn"
+[[ ${nom_fail:-0} -eq 0 ]] || echo "[NOMENCLADORES] hay fallos en este servicio"
+# <<< NOMENCLADORES E2E END

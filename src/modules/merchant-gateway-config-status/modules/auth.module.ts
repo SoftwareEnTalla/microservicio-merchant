@@ -30,13 +30,11 @@
 
 
 import { Module } from "@nestjs/common";
-import { MerchantGatewayConfigStatusCommandController } from "../controllers/merchantgatewayconfigstatuscommand.controller";
 import { MerchantGatewayConfigStatusLoggingInterceptor } from "../interceptors/merchantgatewayconfigstatus.logging.interceptor";
 import { CommandBus, EventBus, UnhandledExceptionBus } from "@nestjs/cqrs";
 import { MerchantGatewayConfigStatusAuthGuard } from "../guards/merchantgatewayconfigstatusauthguard.guard";
 
 @Module({
-  controllers: [MerchantGatewayConfigStatusCommandController],
   providers: [
     MerchantGatewayConfigStatusAuthGuard,
     MerchantGatewayConfigStatusLoggingInterceptor,
