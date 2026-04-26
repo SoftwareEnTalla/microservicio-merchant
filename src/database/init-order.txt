@@ -1,0 +1,3 @@
+postgres-1-catalog-sync-log.sql
+postgres-2-merchant-approval-status.sql
+postgres-3-merchant-gateway-config-status.sql

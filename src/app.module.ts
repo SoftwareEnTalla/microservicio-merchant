@@ -70,6 +70,11 @@ import LoggerService, { logger } from "@core/logs/logger";
 
 */
 
+import { HorizontalModule } from "@common/horizontal";
+
+import { NomencladorListenersModule } from './modules/nomenclador-listeners/nomenclador-listeners.module';
+import { MerchantApprovalStatusModule } from "./modules/merchant-approval-status/modules/merchantapprovalstatus.module";
+import { MerchantGatewayConfigStatusModule } from "./modules/merchant-gateway-config-status/modules/merchantgatewayconfigstatus.module";
 @Module({
   imports: [
     // Se importa/registra el módulo de caché
@@ -118,6 +123,7 @@ import LoggerService, { logger } from "@core/logs/logger";
      * Módulos Merchant de la aplicación
      */
     CqrsModule,
+    HorizontalModule,
     MerchantModule,
         CatalogSyncLogModule,
     MerchantGatewayConfigModule,    
@@ -140,6 +146,10 @@ import LoggerService, { logger } from "@core/logs/logger";
           }),
         ]
       : []),
+  
+    NomencladorListenersModule,
+      MerchantApprovalStatusModule,
+    MerchantGatewayConfigStatusModule,
   ],
 
   /**
