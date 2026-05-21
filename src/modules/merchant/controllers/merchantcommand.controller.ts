@@ -39,6 +39,7 @@ import {
   NotFoundException,
   Get,
   Query,
+  UseGuards,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiParam } from "@nestjs/swagger";
 import { MerchantCommandService } from "../services/merchantcommand.service";
@@ -61,6 +62,8 @@ import { CommandBus } from "@nestjs/cqrs";
 //import { MerchantCreatedEvent } from "../events/merchantcreated.event";
 import { EventStoreService } from "../shared/event-store/event-store.service";
 import { KafkaEventPublisher } from "../shared/adapters/kafka-event-publisher";
+import { FinancialAction } from '../../../common/financial-security/financial-action.decorator';
+import { FinancialActionGuard } from '../../../common/financial-security/financial-action.guard';
 
 @ApiTags("Merchant Command")
 @Controller("merchants/command")
@@ -182,6 +185,16 @@ export class MerchantCommandController {
       "EL ID en la URL no coincide con la instancia Merchant a actualizar.",
   }) // ✅ Nuevo status para el error de validación
   @Put(":id")
+  @UseGuards(FinancialActionGuard)
+  @FinancialAction({
+    policyCode: 'MERCHANT_APPROVAL_STATE_TRANSITION',
+    actionType: 'MERCHANT_APPROVAL_STATE_TRANSITION',
+    targetType: 'merchant',
+    requiredPermissions: ['merchant_manage', 'merchant_approve', 'merchant_review', 'erp_all'],
+    watchedFields: [
+      { field: 'approvalStatus', values: ['APPROVED', 'REJECTED', 'SUSPENDED', 'DISABLED', 'ACTIVE', 'ENABLED'] },
+    ],
+  })
   @LogExecutionTime({
     layer: "controller",
     callback: async (logData, client) => {

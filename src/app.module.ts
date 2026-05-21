@@ -75,6 +75,7 @@ import { HorizontalModule } from "@common/horizontal";
 import { NomencladorListenersModule } from './modules/nomenclador-listeners/nomenclador-listeners.module';
 import { MerchantApprovalStatusModule } from "./modules/merchant-approval-status/modules/merchantapprovalstatus.module";
 import { MerchantGatewayConfigStatusModule } from "./modules/merchant-gateway-config-status/modules/merchantgatewayconfigstatus.module";
+import { MerchantLifecycleModule } from "./modules/merchant-lifecycle/merchant-lifecycle.module";
 @Module({
   imports: [
     // Se importa/registra el módulo de caché
@@ -150,6 +151,7 @@ import { MerchantGatewayConfigStatusModule } from "./modules/merchant-gateway-co
     NomencladorListenersModule,
       MerchantApprovalStatusModule,
     MerchantGatewayConfigStatusModule,
+    MerchantLifecycleModule,
   ],
 
   /**

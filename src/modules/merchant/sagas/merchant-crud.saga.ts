@@ -29,9 +29,11 @@
  */
 
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { Saga, CommandBus, EventBus, ofType } from '@nestjs/cqrs';
 import { Observable, map, tap } from 'rxjs';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import {
   MerchantCreatedEvent,
   MerchantUpdatedEvent,
@@ -51,6 +53,7 @@ import {
 import { LogExecutionTime } from 'src/common/logger/loggers.functions';
 import { LoggerClient } from 'src/common/logger/logger.client';
 import { logger } from '@core/logs/logger';
+import { CatalogSyncLog } from '../../catalog-sync-log/entities/catalog-sync-log.entity';
 
 @Injectable()
 export class MerchantCrudSaga {
@@ -58,7 +61,8 @@ export class MerchantCrudSaga {
 
   constructor(
     private readonly commandBus: CommandBus,
-    private readonly eventBus: EventBus
+    private readonly eventBus: EventBus,
+    @Optional() @InjectDataSource() private readonly dataSource: DataSource | undefined,
   ) {}
 
   // Reacción a evento de creación
@@ -128,6 +132,7 @@ export class MerchantCrudSaga {
   })
   private async handleMerchantCreated(event: MerchantCreatedEvent): Promise<void> {
     try {
+      await this.persistLifecycleSnapshot('CREATED', event);
       this.logger.log(`Saga Merchant Created completada: ${event.aggregateId}`);
     } catch (error: any) {
       this.handleSagaError(error, event);
@@ -152,6 +157,7 @@ export class MerchantCrudSaga {
   })
   private async handleMerchantUpdated(event: MerchantUpdatedEvent): Promise<void> {
     try {
+      await this.persistLifecycleSnapshot('UPDATED', event);
       this.logger.log(`Saga Merchant Updated completada: ${event.aggregateId}`);
     } catch (error: any) {
       this.handleSagaError(error, event);
@@ -176,6 +182,7 @@ export class MerchantCrudSaga {
   })
   private async handleMerchantDeleted(event: MerchantDeletedEvent): Promise<void> {
     try {
+      await this.persistLifecycleSnapshot('DELETED', event);
       this.logger.log(`Saga Merchant Deleted completada: ${event.aggregateId}`);
     } catch (error: any) {
       this.handleSagaError(error, event);
@@ -186,5 +193,93 @@ export class MerchantCrudSaga {
   private handleSagaError(error: Error, event: any) {
     this.logger.error(`Error en saga para evento ${event.constructor.name}: ${error.message}`);
     this.eventBus.publish(new SagaMerchantFailedEvent( error,event));
+  }
+
+  private async persistLifecycleSnapshot(
+    action: 'CREATED' | 'UPDATED' | 'DELETED',
+    event: MerchantCreatedEvent | MerchantUpdatedEvent | MerchantDeletedEvent,
+  ): Promise<void> {
+    const dataSource = this.resolveDataSource();
+    if (!dataSource) {
+      this.logger.warn(`Saga Merchant sin DataSource para persistir lifecycle snapshot de ${event.aggregateId}`);
+      return;
+    }
+
+    const snapshot = this.extractSnapshot(event);
+    const readinessStage = this.deriveReadinessStage(snapshot, action);
+    const metadata = (event as any)?.payload?.metadata || {};
+    const repository = dataSource.getRepository(CatalogSyncLog);
+
+    await repository.save(
+      repository.create({
+        name: `Merchant lifecycle ${action.toLowerCase()} ${event.aggregateId}`,
+        description: `Snapshot operativo generado por MerchantCrudSaga tras ${action.toLowerCase()} de merchant.`,
+        categoryCode: 'MERCHANT_LIFECYCLE',
+        triggeredBy: `MERCHANT_SAGA_${action}`,
+        itemsAddedCount: action === 'CREATED' ? 1 : 0,
+        itemsUpdatedCount: action === 'UPDATED' ? 1 : 0,
+        itemsRemovedCount: action === 'DELETED' ? 1 : 0,
+        diffSnapshot: {
+          added: action === 'CREATED' ? [event.aggregateId] : [],
+          updated: action === 'UPDATED' ? [event.aggregateId] : [],
+          removed: action === 'DELETED' ? [event.aggregateId] : [],
+        },
+        reason: `Merchant ${event.aggregateId} ${action.toLowerCase()} y quedó en ${readinessStage}.`,
+        catalogVersion: 'merchant-saga-v1',
+        catalogHash: String(metadata.correlationId || event.aggregateId).slice(0, 80),
+        durationMs: 0,
+        outcome: readinessStage,
+        syncedAt: new Date(),
+        metadata: {
+          merchantId: event.aggregateId,
+          approvalStatus: snapshot?.approvalStatus || null,
+          hasBankAccounts: this.hasStructuredContent(snapshot?.bankAccounts),
+          hasCollectionMethods: this.hasStructuredContent(snapshot?.collectionMethods),
+          readinessStage,
+          correlationId: metadata.correlationId || null,
+        },
+        createdBy: metadata.initiatedBy || 'system',
+        isActive: true,
+      } as any),
+    );
+  }
+
+  private extractSnapshot(event: MerchantCreatedEvent | MerchantUpdatedEvent | MerchantDeletedEvent): Record<string, any> {
+    return (event as any)?.payload?.instance || {};
+  }
+
+  private deriveReadinessStage(snapshot: Record<string, any>, action: 'CREATED' | 'UPDATED' | 'DELETED'): string {
+    if (action === 'DELETED') {
+      return 'MERCHANT_DELETED';
+    }
+
+    const approvalStatus = String(snapshot?.approvalStatus || 'PENDING').toUpperCase();
+    if (!['APPROVED', 'ACTIVE', 'ENABLED'].includes(approvalStatus)) {
+      return 'PENDING_APPROVAL';
+    }
+    if (!this.hasStructuredContent(snapshot?.bankAccounts) || !this.hasStructuredContent(snapshot?.collectionMethods)) {
+      return 'PROFILE_INCOMPLETE';
+    }
+
+    return 'READY_FOR_GATEWAY_CONFIG';
+  }
+
+  private hasStructuredContent(value: unknown): boolean {
+    if (Array.isArray(value)) {
+      return value.length > 0;
+    }
+    if (value && typeof value === 'object') {
+      return Object.keys(value as Record<string, unknown>).length > 0;
+    }
+
+    return Boolean(value);
+  }
+
+  private resolveDataSource(): DataSource | null {
+    if (this.dataSource?.isInitialized) {
+      return this.dataSource;
+    }
+
+    return null;
   }
 }

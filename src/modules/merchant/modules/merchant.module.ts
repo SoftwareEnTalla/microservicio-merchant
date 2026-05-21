@@ -61,6 +61,9 @@ import { MerchantLoggingInterceptor } from "../interceptors/merchant.logging.int
 //Event-Sourcing dependencies
 import { EventStoreService } from "../shared/event-store/event-store.service";
 import { SemanticSearchModule } from "src/shared/semantic-search/semantic-search.module";
+import { FinancialActionGuard } from '../../../common/financial-security/financial-action.guard';
+import { SecurityAuditBridgeService } from '../../../common/financial-security/security-audit-bridge.service';
+import { SecurityIdentityBridgeService } from '../../../common/financial-security/security-identity-bridge.service';
 
 @Module({
   imports: [
@@ -84,9 +87,12 @@ import { SemanticSearchModule } from "src/shared/semantic-search/semantic-search
     MerchantResolver,
     //Guards
     MerchantAuthGuard,
+    FinancialActionGuard,
     //Interceptors
     MerchantInterceptor,
     MerchantLoggingInterceptor,
+    SecurityAuditBridgeService,
+    SecurityIdentityBridgeService,
     //CQRS Handlers
     CreateMerchantHandler,
     UpdateMerchantHandler,
@@ -123,9 +129,12 @@ import { SemanticSearchModule } from "src/shared/semantic-search/semantic-search
     MerchantResolver,
     //Guards
     MerchantAuthGuard,
+    FinancialActionGuard,
     //Interceptors
     MerchantInterceptor,
     MerchantLoggingInterceptor,
+    SecurityAuditBridgeService,
+    SecurityIdentityBridgeService,
   ],
 })
 export class MerchantModule {}
